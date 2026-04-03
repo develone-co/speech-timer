@@ -8,6 +8,12 @@ A web-based speech timer for Toastmasters meetings. Works in any browser, instal
 
 ---
 
+## Version
+
+**v1.2** — Westlake Toastmasters
+
+---
+
 ## Features
 
 - **Colour-coded timing** — screen changes from White → Green → Yellow → Red as the speaker progresses
@@ -18,6 +24,8 @@ A web-based speech timer for Toastmasters meetings. Works in any browser, instal
 - **Overtime flashing** — red/white screen flash 1 minute past red (epilepsy-safe 1 Hz frequency, can be disabled)
 - **Speech log** — records speaker name, type, time, and over/within status with editable fields
 - **Start / Pause / Finish / Reset** controls with confirmation dialog
+- **Timer role script** that integrates with the demonstration mode
+- **Help page** guides you on how the various functions work
 - **Fully offline** — works without an internet connection once installed
 
 ---
@@ -68,12 +76,6 @@ Once installed, the app works fully offline — no internet connection needed at
 | `manifest.json` | PWA manifest — tells browsers this is an installable app |
 | `sw.js` | Service worker — caches everything for offline use |
 | `icons/` | App icons for home screen (192px, 512px, 180px) |
-
----
-
-## Version
-
-**v1.1** — Westlake Toastmasters
 
 ---
 
