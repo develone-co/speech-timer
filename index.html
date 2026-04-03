@@ -324,6 +324,79 @@
   .footer a { font-size: 0.78rem; color: inherit; opacity: 0.5; text-decoration: none; transition: opacity 0.2s; }
   .footer a:hover { opacity: 0.85; text-decoration: underline; }
 
+  /* Top button bar */
+  .top-bar {
+    display: flex; gap: 10px; justify-content: center; margin: 6px 16px 0;
+    width: min(480px, calc(100% - 32px));
+  }
+  .top-btn {
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 7px 16px;
+    border: 1.5px solid var(--border);
+    border-radius: 20px;
+    background: transparent;
+    color: var(--text);
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s, color 0.2s;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .top-btn:hover { background: rgba(0,0,0,0.05); border-color: var(--accent); }
+  body.phase-green .top-btn, body.phase-yellow .top-btn, body.phase-red .top-btn {
+    border-color: rgba(255,255,255,0.3); color: #fff;
+  }
+  body.phase-green .top-btn:hover, body.phase-yellow .top-btn:hover, body.phase-red .top-btn:hover {
+    background: rgba(255,255,255,0.15);
+  }
+
+  /* Timer script panel (bottom half) */
+  .script-panel {
+    display: none;
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    height: 52vh;
+    background: var(--panel-bg);
+    border-top: 2px solid var(--border);
+    z-index: 900;
+    overflow-y: auto;
+    padding: 20px 24px 24px;
+    transition: background-color 0.5s ease, border-color 0.5s, color 0.4s;
+    box-shadow: 0 -8px 30px rgba(0,0,0,0.12);
+  }
+  .script-panel.open { display: block; }
+  body.phase-green .script-panel { background-color: var(--green-bg); border-color: rgba(255,255,255,0.3); color: #fff; }
+  body.phase-yellow .script-panel { background-color: var(--yellow-bg); border-color: rgba(255,255,255,0.3); color: #fff; }
+  body.phase-red .script-panel { background-color: var(--red-bg); border-color: rgba(255,255,255,0.3); color: #fff; }
+  body.phase-flash-white .script-panel { background-color: var(--white-bg); border-color: var(--border); color: var(--text); }
+
+  .script-panel-inner {
+    max-width: 580px;
+    margin: 0 auto;
+  }
+  .script-panel h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: 2px; }
+  .script-panel .script-subtitle { font-size: 0.78rem; opacity: 0.5; margin-bottom: 14px; font-style: italic; }
+  .script-panel p { font-size: 0.85rem; line-height: 1.55; margin-bottom: 10px; }
+  .script-panel .highlight { background: rgba(39,174,96,0.15); padding: 2px 6px; border-radius: 4px; font-weight: 600; }
+  .script-panel .red-highlight { background: rgba(231,76,60,0.15); padding: 2px 6px; border-radius: 4px; font-weight: 600; }
+  .script-panel .yellow-highlight { background: rgba(243,156,18,0.15); padding: 2px 6px; border-radius: 4px; font-weight: 600; }
+  body.phase-green .script-panel .highlight { background: rgba(255,255,255,0.2); }
+  body.phase-yellow .script-panel .yellow-highlight { background: rgba(255,255,255,0.2); }
+  body.phase-red .script-panel .red-highlight { background: rgba(255,255,255,0.2); }
+
+  .script-btn-row {
+    display: flex; gap: 10px; margin-top: 14px;
+  }
+  .script-btn-row .btn { flex: 1; font-size: 0.85rem; padding: 11px 0; }
+  .btn-demo { background: var(--green); color: #fff; }
+  .btn-close-script { background: transparent; border: 2px solid var(--border); color: var(--text); }
+  body.phase-green .btn-close-script, body.phase-yellow .btn-close-script, body.phase-red .btn-close-script {
+    border-color: rgba(255,255,255,0.4); color: #fff;
+  }
+
   /* Dialog */
   .dialog-overlay {
     display: none; position: fixed; inset: 0;
@@ -362,6 +435,11 @@
   <div class="club-name">Powered by The Club with Heart ♥️</div>
   <div class="club-title">Westlake Toastmasters</div>
   <h1>Speech Timing Tool</h1>
+</div>
+
+<div class="top-bar">
+  <a class="top-btn" href="https://github.com/develone-co/speech-timer/blob/main/HELP.md" target="_blank" rel="noopener">❓ Help</a>
+  <button class="top-btn" id="timerScriptBtn">📋 Timer Script</button>
 </div>
 
 <div class="timer-display" id="timerDisplay">0:00</div>
@@ -454,7 +532,29 @@
 
 <div class="footer">
   <a href="https://www.westlaketoastmasters.co.za" target="_blank" rel="noopener">www.westlaketoastmasters.co.za</a><br>
-  <span style="font-size:10px; color:#777;">v1.1</span>
+  <span style="font-size:10px; color:#777;">v1.2</span>
+</div>
+
+<!-- Timer Script panel (bottom half) -->
+<div class="script-panel" id="scriptPanel">
+  <div class="script-panel-inner">
+    <h3>🎤 Timer Role Introduction</h3>
+    <div class="script-subtitle">Read this aloud at the start of the meeting</div>
+    <p>Hello, fellow Toastmasters and welcome guests. As your Timer today, my role is to help our speakers stay within their allotted time.</p>
+    <div class="script-btn-row">
+      <button class="btn btn-demo" id="scriptDemoBtn">▶ Run Demo</button>
+    </div>
+    <p>I'll be using a colour-coded timing system that works like a traffic light:</p>
+    <p><span class="highlight">🟢 GREEN</span> means you've reached your <strong>minimum time</strong> — you're within the window, well done!</p>
+    <p><span class="yellow-highlight">🟡 YELLOW</span> means you've hit the <strong>closing midpoint</strong> — it's time to start wrapping up your thoughts.</p>
+    <p><span class="red-highlight">🔴 RED</span> means you've reached your <strong>maximum time</strong> — please conclude your speech.</p>
+    <p>If you continue past the red, the screen will begin to <strong>flash</strong> as a gentle reminder.</p>
+    <p>For today's <strong>prepared speeches</strong>, the timing is 5 to 7 minutes. For <strong>Table Topics</strong>, it's 1 to 2 minutes. And for <strong>evaluations</strong>, it's 2 to 3 minutes.</p>
+    <p>I'll display the timer where everyone can see it. Speakers — please keep an eye on the colours so you can deliver your best speech within the time. Good luck to everyone!</p>
+    <div class="script-btn-row">
+      <button class="btn btn-close-script" id="scriptCloseBtn">Close</button>
+    </div>
+  </div>
 </div>
 
 <!-- Reset confirm dialog -->
@@ -809,6 +909,9 @@ function doResetImmediate() {
   $('indRed').classList.remove('active');
   flashToggle.checked = true;
   disableFlashToggle();
+  // Reset script demo button if present
+  const sdb = document.getElementById('scriptDemoBtn');
+  if (sdb) { sdb.disabled = false; sdb.textContent = '▶ Run Demo'; }
 }
 
 function showResetDialog() { resetDialog.classList.add('open'); }
@@ -899,6 +1002,34 @@ logToggle.addEventListener('click', () => {
 updateHints();
 $('indWhite').classList.add('active');
 disableFlashToggle();
+
+// Timer Script panel
+const scriptPanel = $('scriptPanel');
+const scriptDemoBtn = $('scriptDemoBtn');
+
+$('timerScriptBtn').addEventListener('click', () => {
+  scriptPanel.classList.toggle('open');
+});
+$('scriptCloseBtn').addEventListener('click', () => {
+  scriptPanel.classList.remove('open');
+});
+
+// Run Demo from script panel
+scriptDemoBtn.addEventListener('click', () => {
+  if (running || paused) return;
+  speechType.value = 'demo';
+  customRow.style.display = 'none';
+  updateHints();
+  isDemo = true;
+  running = true;
+  paused = false;
+  startBtn.textContent = 'Pause';
+  finishBtn.disabled = true;
+  resetBtn.disabled = false;
+  timerInterval = setInterval(tick, 1000);
+  scriptDemoBtn.disabled = true;
+  scriptDemoBtn.textContent = '⏳ Running...';
+});
 
 // Register PWA service worker
 if ('serviceWorker' in navigator) {
