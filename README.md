@@ -4,7 +4,7 @@
 
 A web-based speech timer for Toastmasters meetings. Works in any browser, installs as a standalone app on your phone, and runs offline.
 
-🌐 **Live app:** [https://YOUR-USERNAME.github.io/speech-timer/](https://YOUR-USERNAME.github.io/speech-timer/)
+🌐 **Live app:** [https://develone-co.github.io/speech-timer/](https://develone-co.github.io/speech-timer/)
 
 ---
 
@@ -56,7 +56,7 @@ Once installed, the app works fully offline — no internet connection needed at
 3. Under "Source", select **Deploy from a branch**
 4. Choose **main** branch, root folder `/`
 5. Click **Save**
-6. Your timer will be live at `https://YOUR-USERNAME.github.io/speech-timer/`
+6. Your timer will be live at `https://develone-co.github.io/speech-timer/`
 
 ---
 
