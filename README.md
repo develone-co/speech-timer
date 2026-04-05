@@ -4,13 +4,7 @@
 
 A web-based speech timer for Toastmasters meetings. Works in any browser, installs as a standalone app on your phone, and runs offline.
 
-🌐 **Live app:** [https://develone-co.github.io/speech-timer/](https://develone-co.github.io/speech-timer/)
-
----
-
-## Version
-
-**v1.2** — Westlake Toastmasters
+🌐 **Live app:** [https://YOUR-USERNAME.github.io/speech-timer/](https://YOUR-USERNAME.github.io/speech-timer/)
 
 ---
 
@@ -24,8 +18,6 @@ A web-based speech timer for Toastmasters meetings. Works in any browser, instal
 - **Overtime flashing** — red/white screen flash 1 minute past red (epilepsy-safe 1 Hz frequency, can be disabled)
 - **Speech log** — records speaker name, type, time, and over/within status with editable fields
 - **Start / Pause / Finish / Reset** controls with confirmation dialog
-- **Timer role script** that integrates with the demonstration mode
-- **Help page** guides you on how the various functions work
 - **Fully offline** — works without an internet connection once installed
 
 ---
@@ -64,7 +56,7 @@ Once installed, the app works fully offline — no internet connection needed at
 3. Under "Source", select **Deploy from a branch**
 4. Choose **main** branch, root folder `/`
 5. Click **Save**
-6. Your timer will be live at `https://develone-co.github.io/speech-timer/`
+6. Your timer will be live at `https://YOUR-USERNAME.github.io/speech-timer/`
 
 ---
 
@@ -76,6 +68,12 @@ Once installed, the app works fully offline — no internet connection needed at
 | `manifest.json` | PWA manifest — tells browsers this is an installable app |
 | `sw.js` | Service worker — caches everything for offline use |
 | `icons/` | App icons for home screen (192px, 512px, 180px) |
+
+---
+
+## Version
+
+**v1.1** — Westlake Toastmasters
 
 ---
 
