@@ -1,6 +1,6 @@
 # Speech Timer ♥️ — Help Guide
 
-**Westlake Toastmasters Speech Timing Tool — v1.2**
+**Westlake Toastmasters Speech Timing Tool — v1.3.1**
 
 ---
 
@@ -113,6 +113,8 @@ The timer uses the standard Toastmasters traffic-light system:
 - The checkbox to disable flashing only becomes available once flashing starts
 - Flashing is independent of the alarm — it works whether the alarm is ticked or not
 
+**Epilepsy safety:** The 1 Hz (1 flash per second) rate is deliberately chosen to stay well below the photosensitive epilepsy danger zone of **3–60 Hz** identified by the Epilepsy Foundation. Flashing content only becomes a seizure risk at 3 flashes per second or faster — this timer flashes three times more slowly than that threshold.
+
 ---
 
 ## Mid-Speech Editing
@@ -137,6 +139,8 @@ This timer can be installed as a standalone app on your phone or computer. See t
 | v1.0 | Initial release — basic timer with colour changes |
 | v1.1 | Added speech log, editable entries, custom times in m:ss, demonstration mode, overtime flashing with epilepsy-safe toggle, reset confirmation dialog |
 | v1.2 | Added Help page, Timer Script popup, Help and Timer Script buttons |
+| v1.3 | Settings, localStorage persistence, dated log, mobile card layout, Install App and Check Updates buttons |
+| v1.3.1 | Dark mode, CSV export, print view, speaker name autocomplete, ko-fi link, simplified Settings |
 
 ---
 

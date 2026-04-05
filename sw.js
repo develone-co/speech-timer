@@ -1,4 +1,4 @@
-const CACHE_NAME = 'speech-timer-v1.2';
+const CACHE_NAME = 'speech-timer-v1.3.1';
 const ASSETS = [
   './',
   './index.html',
@@ -27,13 +27,14 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
   event.respondWith(
     caches.match(event.request).then(cached => {
-      return cached || fetch(event.request).then(response => {
+      const fetchPromise = fetch(event.request).then(response => {
         if (response.ok) {
           const clone = response.clone();
           caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
         }
         return response;
-      });
-    }).catch(() => caches.match('./index.html'))
+      }).catch(() => cached);
+      return cached || fetchPromise;
+    })
   );
 });
