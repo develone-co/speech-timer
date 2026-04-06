@@ -22,7 +22,7 @@
   }
   body.dark-mode {
     --bg: #1a1a2e; --text: #eaeaea; --text-light: #bbb; --panel-bg: #23233b;
-    --border: #3a3a55; --accent: #eaeaea; --white-bg: #1a1a2e;
+    --border: #3a3a55; --accent: #eaeaea; --white-bg: #FAFAFA;
     --shadow: 0 4px 24px rgba(0,0,0,0.4);
   }
   body.dark-mode select,
@@ -43,7 +43,7 @@
   body.phase-green { background-color: var(--green-bg); color: #fff; }
   body.phase-yellow { background-color: var(--yellow-bg); color: #fff; }
   body.phase-red { background-color: var(--red-bg); color: #fff; }
-  body.phase-flash-white { background-color: var(--white-bg); color: var(--text); }
+  body.phase-flash-white { background-color: #FAFAFA; color: #1a1a2e; }
 
   /* Header */
   .header { padding: 18px 0 4px; text-align: center; }
@@ -124,6 +124,7 @@
   .btn:active { transform: scale(0.97); }
   .btn:disabled { opacity: 0.4; cursor: not-allowed; }
   .btn-start { background: var(--accent); color: #fff; }
+  body.dark-mode .btn-start { background: #eaeaea; color: #1a1a2e; }
   .btn-finish { background: var(--green); color: #fff; }
   .btn-reset { background: transparent; border: 2px solid var(--border); color: var(--text); }
   body.phase-green .btn-reset, body.phase-yellow .btn-reset, body.phase-red .btn-reset { border-color: rgba(255,255,255,0.4); color: #fff; }
@@ -153,7 +154,7 @@
   .log-panel {
     background: var(--panel-bg); border: 1px solid var(--border); border-top: none;
     border-radius: 0 0 12px 12px; overflow-y: auto; resize: vertical;
-    min-height: 60px; max-height: 500px; height: 200px;
+    min-height: 80px; max-height: 70vh; height: 240px;
     transition: background 0.4s, border-color 0.4s, color 0.4s;
   }
   body.phase-green .log-panel, body.phase-yellow .log-panel, body.phase-red .log-panel {
@@ -255,11 +256,16 @@
   .script-panel {
     display: none; position: fixed; bottom: 0; left: 0; right: 0; height: 52vh;
     background: var(--panel-bg); border-top: 2px solid var(--border); z-index: 900;
-    overflow-y: auto; padding: 20px 24px 24px;
+    overflow-y: auto; padding: 20px 24px 80px;
     transition: background-color 0.5s ease, border-color 0.5s, color 0.4s;
     box-shadow: 0 -8px 30px rgba(0,0,0,0.12);
   }
   .script-panel.open { display: block; }
+  .script-floating-close {
+    position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%);
+    z-index: 910; width: min(540px, calc(100% - 48px));
+  }
+  .script-floating-close .btn { width: 100%; font-size: 0.85rem; padding: 13px 0; }
   body.phase-green .script-panel { background-color: var(--green-bg); border-color: rgba(255,255,255,0.3); color: #fff; }
   body.phase-yellow .script-panel { background-color: var(--yellow-bg); border-color: rgba(255,255,255,0.3); color: #fff; }
   body.phase-red .script-panel { background-color: var(--red-bg); border-color: rgba(255,255,255,0.3); color: #fff; }
@@ -277,8 +283,9 @@
   .script-btn-row { display: flex; gap: 10px; margin: 12px 0; }
   .script-btn-row .btn { flex: 1; font-size: 0.85rem; padding: 11px 0; }
   .btn-demo { background: var(--green); color: #fff; }
-  .btn-close-script { background: transparent; border: 2px solid var(--border); color: var(--text); }
-  body.phase-green .btn-close-script, body.phase-yellow .btn-close-script, body.phase-red .btn-close-script { border-color: rgba(255,255,255,0.4); color: #fff; }
+  .btn-close-script { background: var(--accent); color: #fff; border: none; }
+  body.dark-mode .btn-close-script { background: #eaeaea; color: #1a1a2e; }
+  body.phase-green .btn-close-script, body.phase-yellow .btn-close-script, body.phase-red .btn-close-script { background: rgba(255,255,255,0.25); color: #fff; }
 
   /* Settings dialog */
   .settings-overlay {
@@ -300,6 +307,7 @@
   .settings-actions .btn { font-size: 0.85rem; padding: 11px 0; }
   .btn-settings-clear { background: var(--red); color: #fff; }
   .btn-settings-close { background: var(--accent); color: #fff; }
+  body.dark-mode .btn-settings-close { background: #eaeaea; color: #1a1a2e; }
 
   /* Update banner */
   .update-banner {
@@ -385,17 +393,21 @@
     .control-row label { min-width: unset; width: 100%; }
     .btn { font-size: 0.85rem; padding: 12px 0; }
     .log-wrapper { width: calc(100% - 16px); }
+    .log-panel { height: 300px; max-height: 60vh; }
     .log-header { display: none; }
     .log-entry {
-      flex-wrap: wrap; padding: 8px 10px; gap: 4px;
+      flex-wrap: wrap; padding: 8px 10px; gap: 2px;
     }
-    .log-entry .le-name { flex: 1 1 100%; min-width: unset; }
+    /* Line 1: name + status + delete */
+    .log-entry .le-name { flex: 1 1 auto; min-width: unset; }
     .log-entry .le-name input { font-weight: 700; font-size: 0.85rem; }
+    .log-entry .le-status { width: auto; flex: 0 0 auto; order: -1; }
+    .log-entry .le-status .log-status { font-size: 0.58rem; padding: 2px 6px; }
+    .log-entry .le-del { width: auto; flex: 0 0 24px; order: -1; }
+    /* Line 2: type + time + red */
     .log-entry .le-type { width: auto; flex: 1 1 55%; }
     .log-entry .le-time { width: auto; flex: 0 0 48px; }
     .log-entry .le-red { width: auto; flex: 0 0 48px; }
-    .log-entry .le-status { width: auto; flex: 1 1 100%; }
-    .log-entry .le-del { width: auto; flex: 0 0 28px; }
     .log-entry .le-time::before { content: 'Time: '; font-size: 0.65rem; opacity: 0.5; }
     .log-entry .le-red::before { content: 'Red: '; font-size: 0.65rem; opacity: 0.5; }
   }
@@ -431,7 +443,7 @@
 <div class="controls-panel">
   <div class="time-hints">
     <div class="time-hint"><div class="dot green"></div><span id="hintGreen">5:00</span></div>
-    <div class="time-hint"><div class="dot yellow"></div><span id="hintYellow">6:00</span></div>
+    <div class="time-hint"><div class="dot yellow"></div><span id="hintYellow" title="Orange">6:00</span></div>
     <div class="time-hint"><div class="dot red"></div><span id="hintRed">7:00</span></div>
   </div>
 
@@ -465,14 +477,16 @@
     </div>
   </div>
 
+  <div style="font-size:0.82rem; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; opacity:0.6; margin-bottom:6px; margin-top:4px;">Overtime</div>
+
   <div class="control-row checkbox-row">
     <input type="checkbox" id="alarmToggle">
-    <label for="alarmToggle">Overtime alarm (repeats every 15s after red +30s)</label>
+    <label for="alarmToggle"><strong>Overtime</strong> alarm (every 15s after red +30s)</label>
   </div>
 
   <div class="control-row checkbox-row flash-row">
     <input type="checkbox" id="flashToggle" checked disabled>
-    <label for="flashToggle" id="flashLabel" class="disabled-label">Overtime flashing (1 min+ past red)</label>
+    <label for="flashToggle" id="flashLabel" class="disabled-label"><strong>Overtime</strong> flashing (1 min+ past red)</label>
     <span class="epilepsy-note">[Epilepsy safe frequency]</span>
   </div>
 
@@ -516,29 +530,29 @@
 
 <div class="footer">
   <a href="https://www.westlaketoastmasters.co.za" target="_blank" rel="noopener">www.westlaketoastmasters.co.za</a><br>
-  <a href="https://github.com/develone-co/speech-timer/" target="_blank" rel="noopener">v1.3.1</a><br>
+  <a href="https://github.com/develone-co/speech-timer/" target="_blank" rel="noopener">v1.3.2</a><br>
   <a href="https://ko-fi.com/develone" target="_blank" rel="noopener">☕ Click here to buy me a coffee</a>
 </div>
 
 <!-- Timer Script panel -->
 <div class="script-panel" id="scriptPanel">
   <div class="script-panel-inner">
-    <h3>🎤 Timer Role Introduction</h3>
+    <h3>Timer Role Introduction</h3>
     <div class="script-subtitle">Read this aloud at the start of the meeting</div>
     <p>Hello, fellow Toastmasters and welcome guests. As your Timer today, my role is to help our speakers stay within their allotted time.</p>
     <div class="script-btn-row">
-      <button class="btn btn-demo" id="scriptDemoBtn">▶ Run Demo</button>
+      <button class="btn btn-demo" id="scriptDemoBtn">&#9654; Run Demo</button>
     </div>
     <p>I'll be using a colour-coded timing system that works like a traffic light:</p>
-    <p><span class="highlight">🟢 GREEN</span> means you've reached your <strong>minimum time</strong> — you're within the window, well done!</p>
-    <p><span class="yellow-highlight">🟡 YELLOW</span> means you've hit the <strong>closing midpoint</strong> — it's time to start wrapping up your thoughts.</p>
-    <p><span class="red-highlight">🔴 RED</span> means you've reached your <strong>maximum time</strong> — please conclude your speech.</p>
-    <p>If you continue past the red, the screen will begin to <strong>flash</strong> as a gentle reminder.</p>
+    <p><span class="highlight">GREEN</span> means you've reached your <strong>minimum time</strong> — you're within the window, well done!</p>
+    <p><span class="yellow-highlight">ORANGE</span> means you've hit the <strong>closing midpoint</strong> — it's time to start wrapping up your thoughts.</p>
+    <p><span class="red-highlight">RED</span> means you've reached your <strong>maximum time</strong> — please conclude your speech.</p>
+    <p>If you continue past the red, the screen will <strong>flash</strong> as a gentle reminder to wrap up.</p>
     <p>For today's <strong>prepared speeches</strong>, the timing is 5 to 7 minutes. For <strong>Table Topics</strong>, it's 1 to 2 minutes. And for <strong>evaluations</strong>, it's 2 to 3 minutes.</p>
     <p>I'll display the timer where everyone can see it. Speakers — please keep an eye on the colours so you can deliver your best speech within the time. Good luck to everyone!</p>
-    <div class="script-btn-row">
-      <button class="btn btn-close-script" id="scriptCloseBtn">Close</button>
-    </div>
+  </div>
+  <div class="script-floating-close">
+    <button class="btn btn-close-script" id="scriptCloseBtn">Close</button>
   </div>
 </div>
 
@@ -554,10 +568,12 @@
       <label style="font-size:0.85rem; font-weight:500;">Check for updates</label>
       <button class="log-tool-btn" id="updateBtn" style="opacity:1;">Check now</button>
     </div>
-    <p style="font-size:0.82rem; opacity:0.7; margin-bottom:16px;">Remove all saved speech logs from this device.</p>
+    <div class="settings-row" style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; padding-top:12px; border-top:1px solid var(--border);">
+      <label style="font-size:0.85rem; font-weight:500;">Clear all data</label>
+      <button class="log-tool-btn" id="settingsClear" style="opacity:1; background:var(--red); color:#fff; border-color:var(--red);">Clear now</button>
+    </div>
     <div class="settings-actions">
-      <button class="btn btn-settings-clear" id="settingsClear">Clear All Data</button>
-      <button class="btn btn-settings-close" id="settingsClose">Done</button>
+      <button class="btn btn-settings-close" id="settingsClose" style="flex:1;">Done</button>
     </div>
   </div>
 </div>
@@ -588,7 +604,7 @@
 <div class="update-banner" id="updateBanner">🔄 Update available — tap to refresh</div>
 
 <script>
-const APP_VERSION = '1.3.1';
+const APP_VERSION = '1.3.2';
 const presets = {
   standard:    { green: 300, yellow: 360, red: 420 },
   icebreaker:  { green: 240, yellow: 300, red: 360 },
@@ -645,8 +661,10 @@ function todayStr() {
 // ── Phase management ──
 function setPhase(phase) {
   currentPhase = phase;
+  const isDark = document.body.classList.contains('dark-mode');
   document.body.className = phase === 'white' ? '' : 'phase-' + phase;
-  const labels = { white: '', green: 'Green — Minimum reached', yellow: 'Yellow — Closing midpoint', red: 'Red — Maximum time' };
+  if (isDark) document.body.classList.add('dark-mode');
+  const labels = { white: '', green: 'Green — Minimum reached', yellow: 'Orange — Closing midpoint', red: 'Red — Maximum time' };
   if (labels[phase] !== undefined) phaseLabel.textContent = labels[phase];
   $('indWhite').classList.toggle('active', phase === 'white');
   $('indGreen').classList.toggle('active', phase === 'green');
@@ -685,7 +703,9 @@ function startFlashing() {
   phaseLabel.textContent = 'OVER TIME — Please wrap up!';
   flashInterval = setInterval(() => {
     flashState = !flashState;
+    const isDark = document.body.classList.contains('dark-mode');
     document.body.className = flashState ? 'phase-flash-white' : 'phase-red';
+    if (isDark) document.body.classList.add('dark-mode');
   }, 1000);
 }
 function stopFlashing() { if (flashInterval) { clearInterval(flashInterval); flashInterval = null; } flashState = false; }
@@ -839,8 +859,9 @@ function addLogEntry(name, typeVal, timeSec, redSec, dateStr) {
   mi.addEventListener('change', () => recalcEntry(entry));
 
   group.appendChild(entry);
-  if (logPanel.classList.contains('hidden')) { logPanel.classList.remove('hidden'); logToggle.classList.remove('collapsed'); }
-  logPanel.scrollTop = logPanel.scrollHeight;
+  if (!logPanel.classList.contains('hidden')) {
+    logPanel.scrollTop = logPanel.scrollHeight;
+  }
   saveLog();
   rememberSpeaker(name);
 }
@@ -881,7 +902,7 @@ function loadLog() {
 
 // ── Timer controls ──
 function finishSpeech() {
-  if (isDemo) return;
+  if (isDemo) { doResetImmediate(); return; }
   clearInterval(timerInterval); stopFlashing(); stopAlarmRepeat();
   running = false; paused = false;
   const t = getTimes();
@@ -896,7 +917,9 @@ function doResetImmediate() {
   timerDisplay.textContent = '0:00'; phaseLabel.innerHTML = '&nbsp;'; progressBar.style.width = '0%';
   startBtn.textContent = 'Start'; startBtn.disabled = false;
   finishBtn.disabled = true; resetBtn.disabled = true; speakerName.value = '';
+  const isDark = document.body.classList.contains('dark-mode');
   document.body.className = ''; currentPhase = 'white';
+  if (isDark) document.body.classList.add('dark-mode');
   $('indWhite').classList.add('active'); $('indGreen').classList.remove('active');
   $('indYellow').classList.remove('active'); $('indRed').classList.remove('active');
   flashToggle.checked = true; disableFlashToggle();
@@ -913,7 +936,13 @@ function startTimer() {
   if (running) {
     clearInterval(timerInterval); running = false; paused = true;
     startBtn.textContent = 'Resume';
-    if (flashInterval) { stopFlashing(); document.body.className = ''; phaseLabel.textContent = 'OVER TIME — Paused'; }
+    if (flashInterval) {
+      stopFlashing();
+      const isDark = document.body.classList.contains('dark-mode');
+      document.body.className = '';
+      if (isDark) document.body.classList.add('dark-mode');
+      phaseLabel.textContent = 'OVER TIME — Paused';
+    }
     return;
   }
   if (paused) {
@@ -926,7 +955,7 @@ function startTimer() {
   }
   isDemo = speechType.value === 'demo';
   running = true; paused = false; startBtn.textContent = 'Pause';
-  finishBtn.disabled = isDemo; resetBtn.disabled = false;
+  finishBtn.disabled = false; resetBtn.disabled = false;
   timerInterval = setInterval(tick, 1000);
 }
 
@@ -943,7 +972,7 @@ speechType.addEventListener('change', () => {
   customRow.style.display = speechType.value === 'custom' ? 'flex' : 'none';
   updateHints(); if (running || paused) updatePhaseFromElapsed();
   isDemo = speechType.value === 'demo';
-  if (isDemo && (running || paused)) finishBtn.disabled = true;
+  if (isDemo && (running || paused)) finishBtn.disabled = false;
   else if (running || paused) finishBtn.disabled = false;
 });
 ['customGreen','customYellow','customRed'].forEach(id => {
@@ -964,7 +993,7 @@ $('scriptDemoBtn').addEventListener('click', () => {
   if (running || paused) return;
   speechType.value = 'demo'; customRow.style.display = 'none'; updateHints();
   isDemo = true; running = true; paused = false;
-  startBtn.textContent = 'Pause'; finishBtn.disabled = true; resetBtn.disabled = false;
+  startBtn.textContent = 'Pause'; finishBtn.disabled = false; resetBtn.disabled = false;
   timerInterval = setInterval(tick, 1000);
   $('scriptDemoBtn').disabled = true; $('scriptDemoBtn').textContent = '⏳ Running...';
 });
@@ -1040,12 +1069,14 @@ $('settingsBtn').addEventListener('click', () => { $('settingsOverlay').classLis
 $('settingsClose').addEventListener('click', () => { $('settingsOverlay').classList.remove('open'); });
 $('settingsClear').addEventListener('click', () => {
   if (confirm('Clear all saved speech logs from this device?')) {
-    localStorage.removeItem('speechTimerLog');
-    localStorage.removeItem('speechTimerSpeakers');
-    logInner.querySelectorAll('.log-date-group').forEach(g => g.remove());
-    checkEmpty();
-    refreshSpeakerDatalist();
-    $('settingsOverlay').classList.remove('open');
+    if (confirm('Are you sure? This cannot be undone.')) {
+      localStorage.removeItem('speechTimerLog');
+      localStorage.removeItem('speechTimerSpeakers');
+      logInner.querySelectorAll('.log-date-group').forEach(g => g.remove());
+      checkEmpty();
+      refreshSpeakerDatalist();
+      $('settingsOverlay').classList.remove('open');
+    }
   }
 });
 
@@ -1098,6 +1129,24 @@ if ('serviceWorker' in navigator) {
   });
 }
 $('updateBanner').addEventListener('click', () => { window.location.reload(); });
+
+// ── Wake Lock (keep screen alive) ──
+let wakeLock = null;
+async function requestWakeLock() {
+  try {
+    if ('wakeLock' in navigator) {
+      wakeLock = await navigator.wakeLock.request('screen');
+      wakeLock.addEventListener('release', () => { wakeLock = null; });
+    }
+  } catch(e) {}
+}
+function releaseWakeLock() {
+  if (wakeLock) { wakeLock.release(); wakeLock = null; }
+}
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') requestWakeLock();
+});
+requestWakeLock();
 
 // ── Init ──
 updateHints();
