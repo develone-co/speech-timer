@@ -4,13 +4,13 @@
 
 A web-based speech timer for Toastmasters meetings. Works in any browser, installs as a standalone app on your phone, and runs offline.
 
-🌐 **Live app:** [https://develone-co.github.io/speech-timer/](https://develone-co.github.io/speech-timer/)
+🌐 **Live app:** [https://levelone-co.github.io/speech-timer/](https://levelone-co.github.io/speech-timer/)
 
 ---
 
 ## Version
 
-**v1.3.2** — Westlake Toastmasters
+**v1.3.2b** — Westlake Toastmasters
 
 ---
 
