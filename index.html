@@ -129,11 +129,10 @@
   .btn-reset { background: transparent; border: 2px solid var(--border); color: var(--text); }
   body.phase-green .btn-reset, body.phase-yellow .btn-reset, body.phase-red .btn-reset { border-color: rgba(255,255,255,0.4); color: #fff; }
 
-  .color-indicators { display: flex; gap: 6px; justify-content: center; margin-top: 16px; }
-  .indicator { width: 14px; height: 14px; border-radius: 50%; border: 2px solid rgba(0,0,0,0.1); transition: transform 0.3s, box-shadow 0.3s; }
-  .indicator.active { transform: scale(1.4); box-shadow: 0 0 12px rgba(0,0,0,0.15); }
-  body.phase-green .indicator, body.phase-yellow .indicator, body.phase-red .indicator { border-color: rgba(255,255,255,0.3); }
-  body.phase-green .indicator.active, body.phase-yellow .indicator.active, body.phase-red .indicator.active { box-shadow: 0 0 12px rgba(255,255,255,0.4); }
+  .color-indicators { display: flex; justify-content: center; margin-top: 16px; }
+  .color-indicators video, .color-indicators canvas {
+    width: 120px; height: 24px; border-radius: 12px;
+  }
 
   /* Speech Log */
   .log-wrapper { width: min(720px, calc(100% - 32px)); margin: 16px 16px 0; }
@@ -499,10 +498,8 @@
 </div>
 
 <div class="color-indicators">
-  <div class="indicator" id="indWhite" style="background:#e0e0e0;"></div>
-  <div class="indicator" id="indGreen" style="background:var(--green);"></div>
-  <div class="indicator" id="indYellow" style="background:var(--yellow);"></div>
-  <div class="indicator" id="indRed" style="background:var(--red);"></div>
+  <canvas id="indCanvas" width="120" height="24" style="display:none;"></canvas>
+  <video id="indVideo" playsinline webkit-playsinline muted loop></video>
 </div>
 
 <div class="log-wrapper">
@@ -532,7 +529,7 @@
 <div class="footer">
   <a href="https://www.westlaketoastmasters.co.za" target="_blank" rel="noopener">www.westlaketoastmasters.co.za</a>
   <span style="opacity:0.3; margin:0 6px;">|</span>
-  <a href="https://github.com/levelone-co/speech-timer/" target="_blank" rel="noopener">v1.3.2e</a><br>
+  <a href="https://github.com/levelone-co/speech-timer/" target="_blank" rel="noopener">v1.3.2f</a><br>
   <script src='https://storage.ko-fi.com/cdn/widget/Widget_2.js'></script>
   <script>kofiwidget2.init('Click here to buy me a coffee', '#2d3436', 'H2H71XAPZJ');kofiwidget2.draw();</script>
 </div>
@@ -669,10 +666,7 @@ function setPhase(phase) {
   if (isDark) document.body.classList.add('dark-mode');
   const labels = { white: '', green: 'Green — Minimum reached', yellow: 'Orange — Closing midpoint', red: 'Red — Maximum time' };
   if (labels[phase] !== undefined) phaseLabel.textContent = labels[phase];
-  $('indWhite').classList.toggle('active', phase === 'white');
-  $('indGreen').classList.toggle('active', phase === 'green');
-  $('indYellow').classList.toggle('active', phase === 'yellow');
-  $('indRed').classList.toggle('active', phase === 'red' || phase === 'flash-white');
+  activeIndicator = (phase === 'flash-white') ? 'red' : phase;
 }
 
 // ── Audio + Vibration ──
@@ -923,8 +917,7 @@ function doResetImmediate() {
   const isDark = document.body.classList.contains('dark-mode');
   document.body.className = ''; currentPhase = 'white';
   if (isDark) document.body.classList.add('dark-mode');
-  $('indWhite').classList.add('active'); $('indGreen').classList.remove('active');
-  $('indYellow').classList.remove('active'); $('indRed').classList.remove('active');
+  activeIndicator = 'white';
   flashToggle.checked = true; disableFlashToggle();
   const sdb = document.getElementById('scriptDemoBtn');
   if (sdb) { sdb.disabled = false; sdb.textContent = '▶ Run Demo'; }
@@ -1135,71 +1128,106 @@ if ('serviceWorker' in navigator) {
 }
 $('updateBanner').addEventListener('click', () => { window.location.reload(); });
 
-// ── Wake Lock (keep screen alive) ──
+// ── Animated colour indicator video (also keeps screen alive on iOS) ──
+let activeIndicator = 'white';
 let wakeLock = null;
-let noSleepAudioNode = null;
-const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+const indCanvas = $('indCanvas');
+const indVideo = $('indVideo');
+const indCtx = indCanvas.getContext('2d');
+const indColors = {
+  white: '#c0c0c0', green: '#27ae60', yellow: '#f39c12', red: '#e74c3c'
+};
+const indKeys = ['white', 'green', 'yellow', 'red'];
+let indAnimFrame = null;
+let indVideoStarted = false;
 
-// iOS fallback: use Web Audio API to maintain an active audio session
-// iOS respects active audio sessions and won't dim/lock the screen
-function startNoSleepAudio() {
-  if (noSleepAudioNode) return;
-  try {
-    unlockAudio();
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.frequency.value = 20; // sub-bass, inaudible on phone speakers
-    gain.gain.value = 0.001; // essentially silent
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-    osc.start();
-    noSleepAudioNode = osc;
-  } catch(e) {}
+function drawIndicators() {
+  const w = indCanvas.width, h = indCanvas.height;
+  const isDark = document.body.classList.contains('dark-mode');
+  // Background matches body
+  indCtx.clearRect(0, 0, w, h);
+  indCtx.fillStyle = isDark ? '#1a1a2e' : '#FAFAFA';
+  indCtx.fillRect(0, 0, w, h);
+
+  const gap = 8, r = 7, totalW = indKeys.length * (r * 2) + (indKeys.length - 1) * gap;
+  const startX = (w - totalW) / 2 + r;
+  const cy = h / 2;
+  const pulse = 0.15 * Math.sin(Date.now() / 400); // gentle pulse
+
+  indKeys.forEach((key, i) => {
+    const cx = startX + i * (r * 2 + gap);
+    const isActive = key === activeIndicator;
+    const radius = isActive ? r + 2 + pulse * r : r;
+
+    indCtx.beginPath();
+    indCtx.arc(cx, cy, radius, 0, Math.PI * 2);
+    indCtx.fillStyle = indColors[key];
+    indCtx.globalAlpha = isActive ? 1 : 0.35;
+    indCtx.fill();
+
+    if (isActive) {
+      indCtx.beginPath();
+      indCtx.arc(cx, cy, radius + 3, 0, Math.PI * 2);
+      indCtx.strokeStyle = indColors[key];
+      indCtx.globalAlpha = 0.3 + pulse;
+      indCtx.lineWidth = 1.5;
+      indCtx.stroke();
+    }
+    indCtx.globalAlpha = 1;
+  });
+
+  indAnimFrame = requestAnimationFrame(drawIndicators);
 }
 
-function stopNoSleepAudio() {
-  if (noSleepAudioNode) {
-    try { noSleepAudioNode.stop(); } catch(e) {}
-    noSleepAudioNode = null;
+function startIndicatorVideo() {
+  if (indVideoStarted) return;
+  try {
+    const stream = indCanvas.captureStream(30);
+    indVideo.srcObject = stream;
+    indVideo.play().catch(() => {});
+    indVideoStarted = true;
+  } catch(e) {
+    // captureStream not supported — show canvas directly as fallback
+    indCanvas.style.display = '';
+    indVideo.style.display = 'none';
   }
 }
+
+// Also use native Wake Lock where available (Android, desktop)
 async function requestWakeLock() {
-  // Try native Wake Lock API first (Android, desktop Chrome/Edge)
   if ('wakeLock' in navigator) {
     try {
       wakeLock = await navigator.wakeLock.request('screen');
       wakeLock.addEventListener('release', () => { wakeLock = null; });
-      return;
     } catch(e) {}
   }
-  // iOS fallback: silent audio session
-  if (isIOS) startNoSleepAudio();
 }
 
-function releaseWakeLock() {
-  if (wakeLock) { wakeLock.release(); wakeLock = null; }
-  stopNoSleepAudio();
-}
-
-// Re-acquire wake lock when app returns to foreground
 document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'visible') requestWakeLock();
-  else releaseWakeLock();
+  if (document.visibilityState === 'visible') {
+    requestWakeLock();
+    if (!indVideoStarted) startIndicatorVideo();
+    else if (indVideo.paused) indVideo.play().catch(() => {});
+  }
 });
 
-// On iOS, AudioContext must be started from a user gesture
-if (isIOS) {
-  document.addEventListener('touchstart', () => {
-    unlockAudio();
-    if (!noSleepAudioNode) startNoSleepAudio();
-  }, { once: false, passive: true });
-}
+// Start video on first user gesture (required by iOS)
+document.addEventListener('touchstart', () => {
+  if (!indVideoStarted) startIndicatorVideo();
+  else if (indVideo.paused) indVideo.play().catch(() => {});
+}, { once: false, passive: true });
+document.addEventListener('click', () => {
+  if (!indVideoStarted) startIndicatorVideo();
+  else if (indVideo.paused) indVideo.play().catch(() => {});
+}, { once: false });
 
+// Start animation loop and wake lock
+drawIndicators();
 requestWakeLock();
 
 // ── Init ──
 updateHints();
-$('indWhite').classList.add('active');
+activeIndicator = 'white';
 disableFlashToggle();
 loadDarkMode();
 loadLog();
