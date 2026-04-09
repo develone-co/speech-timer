@@ -532,7 +532,7 @@
 <div class="footer">
   <a href="https://www.westlaketoastmasters.co.za" target="_blank" rel="noopener">www.westlaketoastmasters.co.za</a>
   <span style="opacity:0.3; margin:0 6px;">|</span>
-  <a href="https://github.com/levelone-co/speech-timer/" target="_blank" rel="noopener">v1.3.2d</a><br>
+  <a href="https://github.com/levelone-co/speech-timer/" target="_blank" rel="noopener">v1.3.2e</a><br>
   <script src='https://storage.ko-fi.com/cdn/widget/Widget_2.js'></script>
   <script>kofiwidget2.init('Click here to buy me a coffee', '#2d3436', 'H2H71XAPZJ');kofiwidget2.draw();</script>
 </div>
@@ -1137,23 +1137,32 @@ $('updateBanner').addEventListener('click', () => { window.location.reload(); })
 
 // ── Wake Lock (keep screen alive) ──
 let wakeLock = null;
-let noSleepVideo = null;
+let noSleepAudioNode = null;
 const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
 
-function createNoSleepVideo() {
-  if (noSleepVideo) return;
-  noSleepVideo = document.createElement('video');
-  noSleepVideo.muted = true;
-  noSleepVideo.loop = true;
-  noSleepVideo.playsInline = true;
-  noSleepVideo.setAttribute('playsinline', '');
-  noSleepVideo.setAttribute('webkit-playsinline', '');
-  noSleepVideo.style.cssText = 'position:fixed;top:-1px;left:-1px;width:1px;height:1px;opacity:0.01;pointer-events:none;';
-  // Valid silent MP4 with audio track (required for iOS to treat as active media)
-  noSleepVideo.src = 'data:video/mp4;base64,AAAAHGZ0eXBNNFYgAAACAGlzb21pc28yYXZjMQAAAAhmcmVlAAAGF21kYXQAAAGzABAHAAABthBgUYI9t+8tFl0GGIAYQAM/WAAAAAAATCAAAH9BgAPwAFgAAKJAAAA0gAAgAASJAAAAZIAAAAcZ8sUKAAAA6EAAAKXAAAC7gAAACkAAAAeAAAAGwAAAB0AAAAUAAAAFAAAABgAAAEAAAARgAAADIB4KqSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpJAAF7AAAH+AiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIhAAV7AAAH+AREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREhAAV7AAAH+AAAAHm1vb3YAAABsbXZoZAAAAAAAAAAAAAAAAAAAA+gAAAAoAAEAAAEAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIAAAG0dHJhawAAAFx0a2hkAAAAAwAAAAAAAAAAAAAAAQAAAAAAAAAoAAAAAAAAAAAAAAABAQAAAAABAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAABMG1kaWEAAAAgbWRoZAAAAAAAAAAAAAAAAAAAMgAAAAIAVcQAAAAAAC1oZGxyAAAAAAAAAABzb3VuAAAAAAAAAAAAAAAAU291bmRIYW5kbGVyAAAA22luZgAAAA5zbWhkAAAAAAAAAAAkZGluZgAAABxkcmVmAAAAAAAAAAEAAAAMdXJsIAAAAAEAAAC/c3RibAAAAFtzdHNkAAAAAAAAAAEAAABLbXA0YQAAAAAAAAABAAAAAAAAAAAAAgAQAAAAADIAAAAAAAAzZXNkcwAAAAADgICAJQACAASAgIAXQBUAAAAAAX14AAF9eAWAgIAFEZBW5QAGgICAAQIAAAAUc3R0cwAAAAAAAAABAAAAAgAAAgAAAAAcc3RzYwAAAAAAAAABAAAAAQAAAAIAAAABAAAAHHN0c3oAAAAAAAAAAAAAAAIAAAAaAAAABgAAABRzdGNvAAAAAAAAAAEAAAAsAAAAYnVkdGEAAABabWV0YQAAAAAAAAAhaGRscgAAAAAAAAAAbWRpcmFwcGwAAAAAAAAAAAAAAAAtaWxzdAAAACWpdG9vAAAAHWRhdGEAAAABAAAAAExhdmY2MC4xNi4xMDA=';
-  document.body.appendChild(noSleepVideo);
+// iOS fallback: use Web Audio API to maintain an active audio session
+// iOS respects active audio sessions and won't dim/lock the screen
+function startNoSleepAudio() {
+  if (noSleepAudioNode) return;
+  try {
+    unlockAudio();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.frequency.value = 20; // sub-bass, inaudible on phone speakers
+    gain.gain.value = 0.001; // essentially silent
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start();
+    noSleepAudioNode = osc;
+  } catch(e) {}
 }
 
+function stopNoSleepAudio() {
+  if (noSleepAudioNode) {
+    try { noSleepAudioNode.stop(); } catch(e) {}
+    noSleepAudioNode = null;
+  }
+}
 async function requestWakeLock() {
   // Try native Wake Lock API first (Android, desktop Chrome/Edge)
   if ('wakeLock' in navigator) {
@@ -1163,16 +1172,13 @@ async function requestWakeLock() {
       return;
     } catch(e) {}
   }
-  // iOS fallback: play silent video with audio track
-  if (isIOS) {
-    createNoSleepVideo();
-    try { await noSleepVideo.play(); } catch(e) {}
-  }
+  // iOS fallback: silent audio session
+  if (isIOS) startNoSleepAudio();
 }
 
 function releaseWakeLock() {
   if (wakeLock) { wakeLock.release(); wakeLock = null; }
-  if (noSleepVideo) { noSleepVideo.pause(); }
+  stopNoSleepAudio();
 }
 
 // Re-acquire wake lock when app returns to foreground
@@ -1181,12 +1187,11 @@ document.addEventListener('visibilitychange', () => {
   else releaseWakeLock();
 });
 
-// On iOS, video.play() must be triggered from user gesture
-// Attach to every tap so the video starts/restarts reliably
+// On iOS, AudioContext must be started from a user gesture
 if (isIOS) {
   document.addEventListener('touchstart', () => {
-    createNoSleepVideo();
-    if (noSleepVideo.paused) noSleepVideo.play().catch(() => {});
+    unlockAudio();
+    if (!noSleepAudioNode) startNoSleepAudio();
   }, { once: false, passive: true });
 }
 
